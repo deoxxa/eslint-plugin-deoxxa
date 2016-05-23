@@ -1,0 +1,22 @@
+{
+  "name": "eslint-deoxxa",
+  "version": "1.0.0",
+  "description": "I make the rules.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/deoxxa/eslint-deoxxa.git"
+  },
+  "keywords": [
+    "eslint",
+    "rules",
+    "fascist"
+  ],
+  "author": "Conrad Pankoff <deoxxa@fknsrs.biz> (http://www.fknsrs.biz/)",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/deoxxa/eslint-deoxxa/issues"
+  },
+  "homepage": "https://github.com/deoxxa/eslint-deoxxa#readme"
+}
