@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-deoxxa",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "I make the rules.",
   "main": "index.js",
   "scripts": {},
