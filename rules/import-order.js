@@ -1,8 +1,3 @@
-var path = require('path');
-
-var join = require('../lib/join');
-var match = require('../lib/match');
-
 module.exports = {
   meta: {
     schema: [
