@@ -16,14 +16,14 @@ module.exports = {
     const source = context.getSourceCode();
     const text = source.getText();
 
-    var order = [];
+    let order = [];
     if (context.options && context.options.length > 0) {
       order = context.options[0].order.map(function(e) {
         if (e.indexOf('/') === 0) {
-          return new RegExp(e.substr(1, e.length-2));
-        } else {
-          return new RegExp('/^' + e.replace(/([\\\.])/, "\\$1") + '$/');
+          return new RegExp(e.substr(1, e.length - 2));
         }
+
+        return new RegExp('/^' + e.replace(/([\\\.])/, '\\$1') + '$/');
       });
     }
 
@@ -103,7 +103,7 @@ module.exports = {
         const sorted = imports.slice().sort(cmp);
 
         sorted.forEach(function(pair, correct) {
-          const [ group, node ] = pair;
+          const [ , node ] = pair;
 
           const current = imports.indexOf(pair);
 
