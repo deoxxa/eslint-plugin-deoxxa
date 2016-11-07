@@ -50,8 +50,18 @@ module.exports = {
     return {
       ImportDeclaration: function(importNode) {
         const lines = source.getText(importNode).split('\n');
-        if (lines.length === 1 && lines[0].length > 80) {
-          context.report(importNode, 'import statements should not have lines longer than 80 characters');
+        if (lines.length === 1 && (importNode.specifiers.length > 1 || (importNode.specifiers.length > 0 && importNode.specifiers[0].type !== 'ImportDefaultSpecifier')) && lines[0].length > 80) {
+          context.report({
+            node: importNode,
+            message: 'import statements should not have lines longer than 80 characters',
+          });
+        }
+
+        if (lines.length > 1 && source.getText(importNode).replace(/\s+/g, ' ').replace(/,\s+\}/, ' }').length <= 80) {
+          context.report({
+            node: importNode,
+            message: 'import statements should be on one line if they fit into 80 characters',
+          });
         }
 
         const specifiers = importNode.specifiers.filter(function(e) { return e.type === 'ImportSpecifier'; });
