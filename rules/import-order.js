@@ -38,11 +38,19 @@ module.exports = {
     }
 
     function cmp(a, b) {
-      if (a[0] < b[0]) { return -1; }
-      if (b[0] < a[0]) { return 1; }
+      if (a[0] < b[0]) {
+        return -1;
+      }
+      if (b[0] < a[0]) {
+        return 1;
+      }
 
-      if (a[1].source.value < b[1].source.value) { return -1; }
-      if (b[1].source.value < a[1].source.value) { return 1; }
+      if (a[1].source.value < b[1].source.value) {
+        return -1;
+      }
+      if (b[1].source.value < a[1].source.value) {
+        return 1;
+      }
 
       return 0;
     }
@@ -50,29 +58,45 @@ module.exports = {
     return {
       ImportDeclaration: function(importNode) {
         const lines = source.getText(importNode).split('\n');
-        if (lines.length === 1 && (importNode.specifiers.length > 1 || (importNode.specifiers.length > 0 && importNode.specifiers[0].type !== 'ImportDefaultSpecifier')) && lines[0].length > 80) {
+        if (
+          lines.length === 1 &&
+          (importNode.specifiers.length > 1 ||
+            (importNode.specifiers.length > 0 &&
+              importNode.specifiers[0].type !== 'ImportDefaultSpecifier')) &&
+          lines[0].length > 80
+        ) {
           context.report({
             node: importNode,
-            message: 'import statements should not have lines longer than 80 characters',
+            message:
+              'import statements should not have lines longer than 80 characters',
           });
         }
 
-        if (lines.length > 1 && source.getText(importNode).replace(/\s+/g, ' ').replace(/,\s+\}/, ' }').length <= 80) {
+        if (
+          lines.length > 1 &&
+          source
+            .getText(importNode)
+            .replace(/\s+/g, ' ')
+            .replace(/,\s+\}/, ' }').length <= 80
+        ) {
           context.report({
             node: importNode,
-            message: 'import statements should be on one line if they fit into 80 characters',
+            message:
+              'import statements should be on one line if they fit into 80 characters',
           });
         }
 
-        const specifiers = importNode.specifiers.filter(function(e) { return e.type === 'ImportSpecifier'; });
+        const specifiers = importNode.specifiers.filter(function(e) {
+          return e.type === 'ImportSpecifier';
+        });
         const sorted = specifiers.slice().sort(function(a, b) {
           switch (true) {
-          case a.local.name > b.local.name:
-            return 1;
-          case b.local.name > a.local.name:
-            return -1;
-          default:
-            return 0;
+            case a.local.name > b.local.name:
+              return 1;
+            case b.local.name > a.local.name:
+              return -1;
+            default:
+              return 0;
           }
         });
 
@@ -83,7 +107,8 @@ module.exports = {
             if (correct === 0) {
               context.report({
                 node: node,
-                message: 'Incorrect import specifier order; {{node}} should come first',
+                message:
+                  'Incorrect import specifier order; {{node}} should come first',
                 data: {
                   node: node.local.name,
                 },
@@ -93,7 +118,8 @@ module.exports = {
               if (specifiers[current - 1] !== before) {
                 context.report({
                   node: node,
-                  message: 'Incorrect import specifier order; {{node}} should follow {{follow}}',
+                  message:
+                    'Incorrect import specifier order; {{node}} should follow {{follow}}',
                   data: {
                     node: node.local.name,
                     follow: before.local.name,
@@ -105,15 +131,17 @@ module.exports = {
         });
       },
       Program: function(programNode) {
-        const imports = programNode.body.filter(function(e) {
-          return e.type === 'ImportDeclaration';
-        }).map(function(importNode) {
-          return [ pos(importNode.source.value), importNode ];
-        });
+        const imports = programNode.body
+          .filter(function(e) {
+            return e.type === 'ImportDeclaration';
+          })
+          .map(function(importNode) {
+            return [pos(importNode.source.value), importNode];
+          });
         const sorted = imports.slice().sort(cmp);
 
         sorted.forEach(function(pair, correct) {
-          const [ , node ] = pair;
+          const [, node] = pair;
 
           const current = imports.indexOf(pair);
 
@@ -134,7 +162,8 @@ module.exports = {
             if (imports[current - 1] !== before) {
               context.report({
                 node: node,
-                message: 'Incorrect import order; {{node}} should follow {{follow}}',
+                message:
+                  'Incorrect import order; {{node}} should follow {{follow}}',
                 data: {
                   node: node.source.value,
                   follow: before[1].source.value,
@@ -145,7 +174,7 @@ module.exports = {
         });
 
         sorted.forEach(function(pair, correct) {
-          const [ group, node ] = pair;
+          const [group, node] = pair;
 
           const current = imports.indexOf(pair);
           if (current !== correct) {
@@ -157,8 +186,14 @@ module.exports = {
           const nl = !next || next[0] !== group;
 
           if (nl) {
-            if (text.substr(node.end, 3) === '\n\n\n' || text.substr(node.end, 2) !== '\n\n') {
-              context.report(node, 'should be followed by exactly two new lines');
+            if (
+              text.substr(node.end, 3) === '\n\n\n' ||
+              text.substr(node.end, 2) !== '\n\n'
+            ) {
+              context.report(
+                node,
+                'should be followed by exactly two new lines'
+              );
             }
           } else if (text[node.end] !== '\n') {
             context.report(node, 'should be followed by a new line');
