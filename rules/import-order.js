@@ -18,6 +18,8 @@ module.exports = {
     const text = source.getText();
 
     let order = [];
+    let maxLength = 80;
+
     if (context.options && context.options.length > 0) {
       order = context.options[0].order.map(function(e) {
         if (e.indexOf('/') === 0) {
@@ -26,6 +28,10 @@ module.exports = {
 
         return new RegExp('/^' + e.replace(/([\\\.])/, '\\$1') + '$/');
       });
+
+      if (typeof context.options[0].maxLength === 'number') {
+        maxLength = context.options[0].maxLength;
+      }
     }
 
     function pos(s) {
@@ -58,11 +64,6 @@ module.exports = {
 
     return {
       ImportDeclaration: function(importNode) {
-        let maxLength = context.options.maxLength;
-        if (typeof maxLength === 'undefined') {
-          maxLength = 80;
-        }
-
         if (typeof maxLength === 'number' && maxLength > 0) {
           const lines = source.getText(importNode).split('\n');
           if (
