@@ -4,6 +4,7 @@ module.exports = {
       {
         type: 'object',
         properties: {
+          maxLength: { type: 'number' },
           order: {
             type: 'array',
             items: { type: 'string' },
@@ -57,33 +58,38 @@ module.exports = {
 
     return {
       ImportDeclaration: function(importNode) {
-        const lines = source.getText(importNode).split('\n');
-        if (
-          lines.length === 1 &&
-          (importNode.specifiers.length > 1 ||
-            (importNode.specifiers.length > 0 &&
-              importNode.specifiers[0].type !== 'ImportDefaultSpecifier')) &&
-          lines[0].length > 80
-        ) {
-          context.report({
-            node: importNode,
-            message:
-              'import statements should not have lines longer than 80 characters',
-          });
+        let maxLength = context.options.maxLength;
+        if (typeof maxLength === 'undefined') {
+          maxLength = 80;
         }
 
-        if (
-          lines.length > 1 &&
-          source
-            .getText(importNode)
-            .replace(/\s+/g, ' ')
-            .replace(/,\s+\}/, ' }').length <= 80
-        ) {
-          context.report({
-            node: importNode,
-            message:
-              'import statements should be on one line if they fit into 80 characters',
-          });
+        if (typeof maxLength === 'number' && maxLength > 0) {
+          const lines = source.getText(importNode).split('\n');
+          if (
+            lines.length === 1 &&
+            (importNode.specifiers.length > 1 ||
+              (importNode.specifiers.length > 0 &&
+                importNode.specifiers[0].type !== 'ImportDefaultSpecifier')) &&
+            lines[0].length > maxLength
+          ) {
+            context.report({
+              node: importNode,
+              message: `import statements should not have lines longer than ${maxLength} characters`,
+            });
+          }
+
+          if (
+            lines.length > 1 &&
+            source
+              .getText(importNode)
+              .replace(/\s+/g, ' ')
+              .replace(/,\s+\}/, ' }').length <= maxLength
+          ) {
+            context.report({
+              node: importNode,
+              message: `import statements should be on one line if they fit into ${maxLength} characters`,
+            });
+          }
         }
 
         const specifiers = importNode.specifiers.filter(function(e) {
