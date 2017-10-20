@@ -59,6 +59,13 @@ module.exports = {
         return 1;
       }
 
+      if (a[1].importKind === 'type' && b[1].importKind === 'value') {
+        return -1;
+      }
+      if (b[1].importKind === 'type' && a[1].importKind === 'value') {
+        return 1;
+      }
+
       return 0;
     }
 
@@ -159,9 +166,11 @@ module.exports = {
           if (correct === 0) {
             context.report({
               node: node,
-              message: 'Incorrect import order; {{node}} should come first',
+              message:
+                'Incorrect import order; {{node}} {{nodeKind}} import should come first',
               data: {
                 node: node.source.value,
+                nodeKind: node.importKind,
               },
             });
           } else {
@@ -170,10 +179,12 @@ module.exports = {
               context.report({
                 node: node,
                 message:
-                  'Incorrect import order; {{node}} should follow {{follow}}',
+                  'Incorrect import order; {{node}} {{nodeKind}} import should follow {{follow}} {{followKind}} import',
                 data: {
                   node: node.source.value,
+                  nodeKind: node.importKind,
                   follow: before[1].source.value,
+                  followKind: before[1].importKind,
                 },
               });
             }
