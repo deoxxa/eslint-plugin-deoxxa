@@ -59,10 +59,10 @@ module.exports = {
         return 1;
       }
 
-      if (a[1].importKind === 'type' && b[1].importKind === 'value') {
+      if (a[1].importKind === 'value' && b[1].importKind === 'type') {
         return -1;
       }
-      if (b[1].importKind === 'type' && a[1].importKind === 'value') {
+      if (b[1].importKind === 'value' && a[1].importKind === 'type') {
         return 1;
       }
 
