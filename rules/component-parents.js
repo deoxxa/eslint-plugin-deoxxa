@@ -3,7 +3,7 @@ var path = require('path');
 var join = require('../lib/join');
 var match = require('../lib/match');
 
-module.exports = function(context) {
+module.exports = function (context) {
   var parents = null;
 
   if (context.options && context.options.length > 0) {
@@ -11,7 +11,7 @@ module.exports = function(context) {
   }
 
   return {
-    ClassDeclaration: function(node) {
+    ClassDeclaration: function (node) {
       var isComponent = match(node, {
         type: 'ClassDeclaration',
         id: {
@@ -27,7 +27,9 @@ module.exports = function(context) {
         return;
       }
 
-      var parent = path.basename(path.dirname(path.dirname(context.getFilename())));
+      var parent = path.basename(
+        path.dirname(path.dirname(context.getFilename()))
+      );
 
       if (parents) {
         if (parents.indexOf(parent) === -1) {

@@ -3,9 +3,9 @@ var path = require('path');
 var join = require('../lib/join');
 var match = require('../lib/match');
 
-module.exports = function(context) {
+module.exports = function (context) {
   return {
-    ClassDeclaration: function(node) {
+    ClassDeclaration: function (node) {
       var isComponent = match(node, {
         type: 'ClassDeclaration',
         id: {

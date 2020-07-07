@@ -1,8 +1,8 @@
 var match = require('../lib/match');
 
-module.exports = function(context) {
+module.exports = function (context) {
   return {
-    JSXAttribute: function(node) {
+    JSXAttribute: function (node) {
       var passthrough = match(node, {
         type: 'JSXAttribute',
         name: {

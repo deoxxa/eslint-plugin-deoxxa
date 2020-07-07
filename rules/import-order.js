@@ -13,7 +13,7 @@ module.exports = {
       },
     ],
   },
-  create: function(context) {
+  create: function (context) {
     const source = context.getSourceCode();
     const text = source.getText();
 
@@ -21,7 +21,7 @@ module.exports = {
     let maxLength = 80;
 
     if (context.options && context.options.length > 0) {
-      order = context.options[0].order.map(function(e) {
+      order = context.options[0].order.map(function (e) {
         if (e.indexOf('/') === 0) {
           return new RegExp(e.substr(1, e.length - 2));
         }
@@ -70,7 +70,7 @@ module.exports = {
     }
 
     return {
-      ImportDeclaration: function(importNode) {
+      ImportDeclaration: function (importNode) {
         if (typeof maxLength === 'number' && maxLength > 0) {
           const lines = source.getText(importNode).split('\n');
           if (
@@ -100,10 +100,10 @@ module.exports = {
           }
         }
 
-        const specifiers = importNode.specifiers.filter(function(e) {
+        const specifiers = importNode.specifiers.filter(function (e) {
           return e.type === 'ImportSpecifier';
         });
-        const sorted = specifiers.slice().sort(function(a, b) {
+        const sorted = specifiers.slice().sort(function (a, b) {
           switch (true) {
             case a.local.name > b.local.name:
               return 1;
@@ -114,7 +114,7 @@ module.exports = {
           }
         });
 
-        sorted.forEach(function(node, correct) {
+        sorted.forEach(function (node, correct) {
           const current = specifiers.indexOf(node);
 
           if (correct !== current) {
@@ -144,17 +144,17 @@ module.exports = {
           }
         });
       },
-      Program: function(programNode) {
+      Program: function (programNode) {
         const imports = programNode.body
-          .filter(function(e) {
+          .filter(function (e) {
             return e.type === 'ImportDeclaration';
           })
-          .map(function(importNode) {
+          .map(function (importNode) {
             return [pos(importNode.source.value), importNode];
           });
         const sorted = imports.slice().sort(cmp);
 
-        sorted.forEach(function(pair, correct) {
+        sorted.forEach(function (pair, correct) {
           const [, node] = pair;
 
           const current = imports.indexOf(pair);
@@ -191,7 +191,7 @@ module.exports = {
           }
         });
 
-        sorted.forEach(function(pair, correct) {
+        sorted.forEach(function (pair, correct) {
           const [group, node] = pair;
 
           const current = imports.indexOf(pair);

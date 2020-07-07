@@ -18,5 +18,13 @@
   "bugs": {
     "url": "https://github.com/deoxxa/eslint-plugin-deoxxa/issues"
   },
-  "homepage": "https://github.com/deoxxa/eslint-plugin-deoxxa#readme"
+  "homepage": "https://github.com/deoxxa/eslint-plugin-deoxxa#readme",
+  "prettier": {
+    "printWidth": 80,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.5"
+  }
 }
