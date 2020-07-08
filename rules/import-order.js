@@ -1,13 +1,14 @@
 module.exports = {
   meta: {
+    fixable: true,
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
-          maxLength: { type: 'number' },
+          maxLength: { type: "number" },
           order: {
-            type: 'array',
-            items: { type: 'string' },
+            type: "array",
+            items: { type: "string" },
           },
         },
       },
@@ -22,14 +23,14 @@ module.exports = {
 
     if (context.options && context.options.length > 0) {
       order = context.options[0].order.map(function (e) {
-        if (e.indexOf('/') === 0) {
+        if (e.indexOf("/") === 0) {
           return new RegExp(e.substr(1, e.length - 2));
         }
 
-        return new RegExp('/^' + e.replace(/([\\\.])/, '\\$1') + '$/');
+        return new RegExp("/^" + e.replace(/([\\\.])/, "\\$1") + "$/");
       });
 
-      if (typeof context.options[0].maxLength === 'number') {
+      if (typeof context.options[0].maxLength === "number") {
         maxLength = context.options[0].maxLength;
       }
     }
@@ -59,10 +60,10 @@ module.exports = {
         return 1;
       }
 
-      if (a[1].importKind === 'value' && b[1].importKind === 'type') {
+      if (a[1].importKind === "value" && b[1].importKind === "type") {
         return -1;
       }
-      if (b[1].importKind === 'value' && a[1].importKind === 'type') {
+      if (b[1].importKind === "value" && a[1].importKind === "type") {
         return 1;
       }
 
@@ -71,13 +72,13 @@ module.exports = {
 
     return {
       ImportDeclaration: function (importNode) {
-        if (typeof maxLength === 'number' && maxLength > 0) {
-          const lines = source.getText(importNode).split('\n');
+        if (typeof maxLength === "number" && maxLength > 0) {
+          const lines = source.getText(importNode).split("\n");
           if (
             lines.length === 1 &&
             (importNode.specifiers.length > 1 ||
               (importNode.specifiers.length > 0 &&
-                importNode.specifiers[0].type !== 'ImportDefaultSpecifier')) &&
+                importNode.specifiers[0].type !== "ImportDefaultSpecifier")) &&
             lines[0].length > maxLength
           ) {
             context.report({
@@ -90,8 +91,8 @@ module.exports = {
             lines.length > 1 &&
             source
               .getText(importNode)
-              .replace(/\s+/g, ' ')
-              .replace(/,\s+\}/, ' }').length <= maxLength
+              .replace(/\s+/g, " ")
+              .replace(/,\s+\}/, " }").length <= maxLength
           ) {
             context.report({
               node: importNode,
@@ -101,7 +102,7 @@ module.exports = {
         }
 
         const specifiers = importNode.specifiers.filter(function (e) {
-          return e.type === 'ImportSpecifier';
+          return e.type === "ImportSpecifier";
         });
         const sorted = specifiers.slice().sort(function (a, b) {
           switch (true) {
@@ -114,82 +115,117 @@ module.exports = {
           }
         });
 
+        let hasErrors = false;
+
         sorted.forEach(function (node, correct) {
           const current = specifiers.indexOf(node);
-
-          if (correct !== current) {
-            if (correct === 0) {
-              context.report({
-                node: node,
-                message:
-                  'Incorrect import specifier order; {{node}} should come first',
-                data: {
-                  node: node.local.name,
-                },
-              });
-            } else {
-              const before = sorted[correct - 1];
-              if (specifiers[current - 1] !== before) {
-                context.report({
-                  node: node,
-                  message:
-                    'Incorrect import specifier order; {{node}} should follow {{follow}}',
-                  data: {
-                    node: node.local.name,
-                    follow: before.local.name,
-                  },
-                });
-              }
-            }
+          if (current === correct) {
+            return;
           }
+
+          hasErrors = true;
+
+          context.report({
+            node: node,
+            message:
+              "Incorrect import specifier order; {{node}} should be in position {{position}}",
+            data: {
+              node: node.local.name,
+              position: correct,
+            },
+          });
         });
+
+        if (hasErrors) {
+          context.report({
+            node: importNode,
+            message:
+              "Incorrect import specifier order; should be {{correctOrder}}",
+            data: {
+              correctOrder: sorted.map((e) => source.getText(e)).join(", "),
+            },
+            fix: function fix(fixer) {
+              return specifiers.map((replaceThis, index) => {
+                const replaceWith = sorted[index];
+                return fixer.replaceText(
+                  replaceThis,
+                  source.getText(replaceWith)
+                );
+              });
+            },
+          });
+        }
       },
       Program: function (programNode) {
         const imports = programNode.body
           .filter(function (e) {
-            return e.type === 'ImportDeclaration';
+            return e.type === "ImportDeclaration";
           })
           .map(function (importNode) {
             return [pos(importNode.source.value), importNode];
           });
         const sorted = imports.slice().sort(cmp);
 
-        sorted.forEach(function (pair, correct) {
+        const misplaced = imports.filter(function(pair) {
+          return imports.indexOf(pair) !== sorted.indexOf(pair);
+        });
+
+        let hasErrors = false;
+        let hasTypes = false;
+
+        misplaced.forEach(function(pair) {
+          var current = imports.indexOf(pair);
+          var correct = sorted.indexOf(pair);
+
+          hasErrors = true;
+
           const [, node] = pair;
 
-          const current = imports.indexOf(pair);
-
-          if (current === correct) {
-            return;
+          if (node.importKind === "type") {
+            hasTypes = true;
           }
 
-          if (correct === 0) {
-            context.report({
-              node: node,
-              message:
-                'Incorrect import order; {{node}} {{nodeKind}} import should come first',
-              data: {
-                node: node.source.value,
-                nodeKind: node.importKind,
-              },
-            });
-          } else {
-            const before = sorted[correct - 1];
-            if (imports[current - 1] !== before) {
-              context.report({
-                node: node,
-                message:
-                  'Incorrect import order; {{node}} {{nodeKind}} import should follow {{follow}} {{followKind}} import',
-                data: {
-                  node: node.source.value,
-                  nodeKind: node.importKind,
-                  follow: before[1].source.value,
-                  followKind: before[1].importKind,
-                },
-              });
-            }
-          }
+          context.report({
+            node: node,
+            message:
+              "Incorrect import order; {{node}} {{nodeKind}} import should be in position {{position}}",
+            data: {
+              node: node.source.value,
+              nodeKind: node.importKind,
+              position: correct,
+            },
+          });
         });
+
+        if (hasErrors) {
+          context.report({
+            node: programNode,
+            message: "Incorrect file import order; should be {{correct}}",
+            data: {
+              correct: sorted
+                .map((e) =>
+                  hasTypes
+                    ? e[1].source.value + " " + e[1].importKind
+                    : e[1].source.value
+                )
+                .join(", "),
+            },
+            fix: function fix(fixer) {
+              const fixes = [];
+
+              imports.forEach((replaceThis, index) => {
+                const replaceWith = sorted[index];
+
+                fixes.push(fixer.replaceText(
+                  replaceThis[1],
+                  source.getText(replaceWith[1])
+                ));
+              });
+
+              return fixes;
+            },
+          });
+        }
 
         sorted.forEach(function (pair, correct) {
           const [group, node] = pair;
@@ -201,20 +237,40 @@ module.exports = {
 
           const next = sorted[correct + 1];
 
-          const nl = !next || next[0] !== group;
+          const boundary = !next || next[0] !== group;
+          const expected = boundary ? 2 : 1;
 
-          if (nl) {
-            if (
-              text.substr(node.end, 3) === '\n\n\n' ||
-              text.substr(node.end, 2) !== '\n\n'
-            ) {
-              context.report(
-                node,
-                'should be followed by exactly two new lines'
-              );
-            }
-          } else if (text[node.end] !== '\n') {
-            context.report(node, 'should be followed by a new line');
+          let count = 0;
+          while (text[node.range[1] + count] === "\n") {
+            count++;
+          }
+
+          if (count !== expected) {
+            context.report({
+              node: node,
+              message:
+                "{{node}} {{nodeKind}} import should be followed by exactly {{expected}} new line(s); found {{count}}",
+              data: {
+                node: node.source.value,
+                nodeKind: node.importKind,
+                expected: expected,
+                count: count,
+              },
+              fix: function fix(fixer) {
+                const fixes = [];
+                if (count < expected) {
+                  fixes.push(fixer.insertTextAfter(node, "\n"));
+                } else {
+                  fixes.push(
+                    fixer.removeRange([
+                      node.range[1] + count - expected,
+                      node.range[1] + count,
+                    ])
+                  );
+                }
+                return fixes;
+              },
+            });
           }
         });
       },
