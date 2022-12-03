@@ -3,12 +3,12 @@ module.exports = {
     fixable: true,
     schema: [
       {
-        type: "object",
+        type: 'object',
         properties: {
-          maxLength: { type: "number" },
+          maxLength: { type: 'number' },
           order: {
-            type: "array",
-            items: { type: "string" },
+            type: 'array',
+            items: { type: 'string' },
           },
         },
       },
@@ -23,14 +23,14 @@ module.exports = {
 
     if (context.options && context.options.length > 0) {
       order = context.options[0].order.map(function (e) {
-        if (e.indexOf("/") === 0) {
+        if (e.indexOf('/') === 0) {
           return new RegExp(e.substr(1, e.length - 2));
         }
 
-        return new RegExp("/^" + e.replace(/([\\\.])/, "\\$1") + "$/");
+        return new RegExp('/^' + e.replace(/([\\\.])/, '\\$1') + '$/');
       });
 
-      if (typeof context.options[0].maxLength === "number") {
+      if (typeof context.options[0].maxLength === 'number') {
         maxLength = context.options[0].maxLength;
       }
     }
@@ -60,10 +60,10 @@ module.exports = {
         return 1;
       }
 
-      if (a[1].importKind === "value" && b[1].importKind === "type") {
+      if (a[1].importKind === 'value' && b[1].importKind === 'type') {
         return -1;
       }
-      if (b[1].importKind === "value" && a[1].importKind === "type") {
+      if (b[1].importKind === 'value' && a[1].importKind === 'type') {
         return 1;
       }
 
@@ -72,13 +72,13 @@ module.exports = {
 
     return {
       ImportDeclaration: function (importNode) {
-        if (typeof maxLength === "number" && maxLength > 0) {
-          const lines = source.getText(importNode).split("\n");
+        if (typeof maxLength === 'number' && maxLength > 0) {
+          const lines = source.getText(importNode).split('\n');
           if (
             lines.length === 1 &&
             (importNode.specifiers.length > 1 ||
               (importNode.specifiers.length > 0 &&
-                importNode.specifiers[0].type !== "ImportDefaultSpecifier")) &&
+                importNode.specifiers[0].type !== 'ImportDefaultSpecifier')) &&
             lines[0].length > maxLength
           ) {
             context.report({
@@ -91,8 +91,8 @@ module.exports = {
             lines.length > 1 &&
             source
               .getText(importNode)
-              .replace(/\s+/g, " ")
-              .replace(/,\s+\}/, " }").length <= maxLength
+              .replace(/\s+/g, ' ')
+              .replace(/,\s+\}/, ' }').length <= maxLength
           ) {
             context.report({
               node: importNode,
@@ -102,7 +102,7 @@ module.exports = {
         }
 
         const specifiers = importNode.specifiers.filter(function (e) {
-          return e.type === "ImportSpecifier";
+          return e.type === 'ImportSpecifier';
         });
         const sorted = specifiers.slice().sort(function (a, b) {
           switch (true) {
@@ -128,7 +128,7 @@ module.exports = {
           context.report({
             node: node,
             message:
-              "Incorrect import specifier order; {{node}} should be in position {{position}}",
+              'Incorrect import specifier order; {{node}} should be in position {{position}}',
             data: {
               node: node.local.name,
               position: correct,
@@ -140,9 +140,9 @@ module.exports = {
           context.report({
             node: importNode,
             message:
-              "Incorrect import specifier order; should be {{correctOrder}}",
+              'Incorrect import specifier order; should be {{correctOrder}}',
             data: {
-              correctOrder: sorted.map((e) => source.getText(e)).join(", "),
+              correctOrder: sorted.map((e) => source.getText(e)).join(', '),
             },
             fix: function fix(fixer) {
               return specifiers.map((replaceThis, index) => {
@@ -159,21 +159,21 @@ module.exports = {
       Program: function (programNode) {
         const imports = programNode.body
           .filter(function (e) {
-            return e.type === "ImportDeclaration";
+            return e.type === 'ImportDeclaration';
           })
           .map(function (importNode) {
             return [pos(importNode.source.value), importNode];
           });
         const sorted = imports.slice().sort(cmp);
 
-        const misplaced = imports.filter(function(pair) {
+        const misplaced = imports.filter(function (pair) {
           return imports.indexOf(pair) !== sorted.indexOf(pair);
         });
 
         let hasErrors = false;
         let hasTypes = false;
 
-        misplaced.forEach(function(pair) {
+        misplaced.forEach(function (pair) {
           var current = imports.indexOf(pair);
           var correct = sorted.indexOf(pair);
 
@@ -181,14 +181,14 @@ module.exports = {
 
           const [, node] = pair;
 
-          if (node.importKind === "type") {
+          if (node.importKind === 'type') {
             hasTypes = true;
           }
 
           context.report({
             node: node,
             message:
-              "Incorrect import order; {{node}} {{nodeKind}} import should be in position {{position}}",
+              'Incorrect import order; {{node}} {{nodeKind}} import should be in position {{position}}',
             data: {
               node: node.source.value,
               nodeKind: node.importKind,
@@ -200,15 +200,15 @@ module.exports = {
         if (hasErrors) {
           context.report({
             node: programNode,
-            message: "Incorrect file import order; should be {{correct}}",
+            message: 'Incorrect file import order; should be {{correct}}',
             data: {
               correct: sorted
                 .map((e) =>
                   hasTypes
-                    ? e[1].source.value + " " + e[1].importKind
+                    ? e[1].source.value + ' ' + e[1].importKind
                     : e[1].source.value
                 )
-                .join(", "),
+                .join(', '),
             },
             fix: function fix(fixer) {
               const fixes = [];
@@ -216,10 +216,12 @@ module.exports = {
               imports.forEach((replaceThis, index) => {
                 const replaceWith = sorted[index];
 
-                fixes.push(fixer.replaceText(
-                  replaceThis[1],
-                  source.getText(replaceWith[1])
-                ));
+                fixes.push(
+                  fixer.replaceText(
+                    replaceThis[1],
+                    source.getText(replaceWith[1])
+                  )
+                );
               });
 
               return fixes;
@@ -241,7 +243,7 @@ module.exports = {
           const expected = boundary ? 2 : 1;
 
           let count = 0;
-          while (text[node.range[1] + count] === "\n") {
+          while (text[node.range[1] + count] === '\n') {
             count++;
           }
 
@@ -249,7 +251,7 @@ module.exports = {
             context.report({
               node: node,
               message:
-                "{{node}} {{nodeKind}} import should be followed by exactly {{expected}} new line(s); found {{count}}",
+                '{{node}} {{nodeKind}} import should be followed by exactly {{expected}} new line(s); found {{count}}',
               data: {
                 node: node.source.value,
                 nodeKind: node.importKind,
@@ -259,7 +261,7 @@ module.exports = {
               fix: function fix(fixer) {
                 const fixes = [];
                 if (count < expected) {
-                  fixes.push(fixer.insertTextAfter(node, "\n"));
+                  fixes.push(fixer.insertTextAfter(node, '\n'));
                 } else {
                   fixes.push(
                     fixer.removeRange([
