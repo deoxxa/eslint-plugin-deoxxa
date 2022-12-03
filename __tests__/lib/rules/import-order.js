@@ -460,7 +460,7 @@ const test = {
 };
 
 const ruleTester = new RuleTester({
-  parser: path.resolve("node_modules/babel-eslint/lib/index.js"),
+  parser: require.resolve('@babel/eslint-parser'),
 });
 
-ruleTester.run("babel-eslint/import-order", rule, test);
+ruleTester.run("import-order", rule, test);
